@@ -596,10 +596,10 @@ To save resource and time consumed in the probing process, a probing job is set 
 We present a semi-random sampling algorithm for the probing job, as shown in Algorithm 1. The input parameters of this algorithm include splits (input data splits of the original job), mapperCount (map tasks count of the original job), reducerCount (reduce tasks count of the original job), and sampledSplitsUpperBound (maximum number of splits that can be sampled in this routine). The output is the dataset sampled from the splits. Firstly, we set the sampling fraction to be the reciprocal of the larger number between the counts of map and reduce tasks in the original job. This setting can prevent either the map or reduce task in a probing job from crashing under a too heavy workload. Then, the number of splits to be sampled and the sampling frequency of records in each split are calculated. To reduce consumed time, we do the sampling on a number of splits (not more than sampledSplitsUpperBound) selected randomly from the original splits. Finally, data is sampled from the selected splits according to the sampling frequency.
 
 \begin{algorithm}
-  \caption{DATA SAMPLING}
+  \caption{Data Sampling}
   \KwIn{splits, mapperCount,  reducerCount, sampledSplitsUpperBound}
   \KwOut{sampledData}
-  sampleFrac = 1 / max(mapperCount, reducerCount)\;
+  sampleFrac = 1/ max(mapperCount, reducerCount)\;
   sampleSplitNum = min(mapperCount, sampledSplitsUpperBound)\;
   splitSampleFreq = sampleFrac / (sampleSplitNum / mapperCount)\;
   sampledData = an empty collection\;
@@ -636,17 +636,17 @@ Algorithm 2 describes the procedure of VRA. The input parameters of this procedu
   \KwIn{virtualQueue, clusterResource}
   \KwOut{virtualQueue}
   remainingResource = clusterResource\;
-  \For{$j=0$;$j\le$ virtualQueue.length;$j$ ++}
+  \For{$j=0$;$j \le$ virtualQueue.length;$j$ ++}
   {
     $job = virtualQueue[i]$\;
-    $fairShare = remainingResource / (virtualQueue.length-i)$\;
+    $fairShare = remainingResource/(virtualQueue.length-i)$\;
     \eIf{$fairShare > job.APB$}{
         $job.virtualResource = job.APB$\;
     }{
-        $feedPercentage = fairShare / job.APB$\;
+        $feedPercentage = fariShare / job.APB$\;
         $job.virtualResource = job.APB \times feedPercentage$\;
     }
-    $remainingResource-=job.virtualResource$\;
+    $remainingResource 每= job.virtualResource$\;
   }
   return $virtualQueue$\;
 \end{algorithm}
@@ -657,20 +657,20 @@ The VSC algorithm depends on the last running result of the VRA algorithm. Algor
   \caption{VIRTUAL SIZE CALCULATION}
   \KwIn{virtualQueue, lastUpdateTime}
   \KwOut{virtualQueue}
-  interval = lastUpdateTime $-$ currentTime\;
+  interval = lastUpdateTime 每 currentTime\;
   \For{$job$ \textbf{in} $virtualQueue$}
   {
-    \If{$job.virtualResource > 0$}{
+    \eIf{$job.virtualResource > 0$}{
         \eIf{$job$ is in uber mode}{
-            $job.virtualSize -= job.virtualResource \times interval$
+            $job.virtualSize 每= job.virtualResource \times interval$
         }{
-            $effectiveResource = job.virtualResource - job.amResource$
-            $job.virtualSize -= effectiveResource \times interval$
+            $effectiveResource = job.virtualResource 每 job.amResource$
+            $job.virtualSize 每= effectiveResource \times interval$
         }
-        \If{$job.virtualSize <= 0$}{
+        \eIf{$job.virtualSize <= 0$}{
             remove $job$ from $virtualQueue$
-        }
-    }
+        }{continue}
+    }{continue}
   }
   return $virtualQueue$\;
 \end{algorithm}
@@ -683,14 +683,6 @@ We present a new scheduling framework to address the problems stated above. In o
 To address the problem of probing latency, we schedule jobs by the fair policy until their sizes are predicted. Consequently, jobs in the production queue are further arranged into two sub queues: \emph{size-based queue} and \emph{fair queue}. Jobs with size information are placed in the size-based queue and are ordered by their virtual sizes, while jobs without size information are placed in the fair queue and are ordered by the quantities of their allocated resources. Now that both the job virtual size and the allocated resources involve two kinds of resources in YARN, we use memory seconds and memory quantities instead respectively. Moreover, virtual jobs are scheduled in the virtual queue, which has as much virtual resources as the real resources in the cluster. Jobs in the virtual queue are ordered by the memory quantities of their APBs.
 
 As jobs in the production queue are scheduled in two sub queues, how to allocate resources between these two sub queues is a key problem. According to the fair principle, jobs in the fair queue should hold as much resources as they would hold under the virtual Fair scheduler. In other words, their allocated real resources should be as much as their allocated virtual resources. If the fair queue holds less resources than the allocated virtual resources of its jobs, the scheduler will allocate new available resources to the fair queue. Otherwise, new available resources should be allocated to the size-based queue. However, the resources might be rejected by the selected queue for certain reasons, such as the requirement of the queue is fulfilled or the resources don＊t meet its requirements. Then, the scheduler will try allocate the resources to the other queue to enhance the resource utilization of the cluster.
-
-\begin{figure}[ht]
-
-\centering
-    \includegraphics[width=0.4\textwidth]{pdf_clipped}
-
-\caption{SSD Architecture}\label{fig:SSDArchitecture}
-\end{figure}
 
 The procedure to handle a newly-submitted job is as follows. If the job is running in uber mode, its size is estimated directly as stated above, and then it is put into the size-based queue. If the job is in normal mode, we assign the job an initial size and put it into the fair queue. Then, we start the job probing procedure to predict its job size. Meanwhile, both jobs in uber and normal modes are put into the virtual queue. The initial size of a job should be large enough, otherwise the job may be taken out from the virtual queue by VSC algorithm before it is actually finished in the virtual Fair scheduler. In addition to job size, APB is also necessary in the virtual size calculation. The APB of an uber job is equal to the resource quantity of its AM container, while that of a normal job cannot be calculated until the job size is predicted. Similar to the operation of job size, we assign an initial APB to each normal job before its size is predicted. Now that a job usually runs in the map phase during its probing process, we calculate its initial APB as follows:
 
@@ -738,25 +730,25 @@ We use three physical servers to build an experimental cluster. A physical serve
 
 We use SWIM \cite{chen2011case} to synthesize the workload used in our experiments. SWIM can capture rich workload characteristics observed in traces, and synthesize representative workloads for execution. By default, SWIM provides two formatted workload traces, namely FB-2009 and FB-2010, both of which are sampled and converted from real workload trace files of FaceBook＊s datacenter. Comparing to FB-2009, jobs in FB-2010 are larger and submitted in a denser manner. Since the capacity of our experimental cluster is limited, we select FB-2009 to synthesize workloads in our experiments.
 \subsection{Job Size Prediction Validation}
-Figure 2 compares the predicted and actual per-job map execution times in our experiments. As the figure shows, most jobs are distributed intensively around the diagonal. We also notice that a portion of jobs are located under the diagonal in the lower left corner of the plot, which means that for tiny jobs (per-job map execution time less than 30s),  our predicted values are generally smaller than the actual values. Statistically, the $R^2$ accuracy of our prediction reaches 0.942. The whole results suggest that our method is effective in per-job map execution time prediction, especially for large jobs.
+Figure 1a compares the predicted and actual per-job map execution times in our experiments. As the figure shows, most jobs are distributed intensively around the diagonal. We also notice that a portion of jobs are located under the diagonal in the lower left corner of the plot, which means that for tiny jobs (per-job map execution time less than 30s),  our predicted values are generally smaller than the actual values. Statistically, the $R^2$ accuracy of our prediction reaches 0.942. The whole results suggest that our method is effective in per-job map execution time prediction, especially for large jobs.
 \begin{figure*}
   \centering
-  \subfigure[Predicted vs. actual values of the total map tasks execution time]{
+  \subfigure[map tasks execution time]{
     \label{map_execution_time_prediction} %% label for first subfigure
     \includegraphics[width=0.32\linewidth]{map_execution_time_prediction}}
-  \subfigure[Predicted vs. actual values of the total reduce tasks execution time]{
+  \subfigure[reduce tasks execution time]{
     \label{reduce_execution_time_prediction} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{reduce_execution_time_prediction}}
-  \subfigure[Predicted vs. actual values of the total reduce tasks execution time]{
+  \subfigure[job sizes]{
     \label{reduce_execution_time_prediction} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{reduce_execution_time_prediction}}
-  \caption{Two Subfigures}
+  \caption{Predicted vs. actual values in the job size prediction.}
   \label{pre_actual_exe_time} %% label for entire figure
 \end{figure*}
 
-Figure 3 shows the predicted vs. actual total per-job reduce execution times of jobs in our experiments. Apparently, the distribution of points in this figure is less intensive than that in Figure 2, which means the prediction accuracy for reduce tasks is lower than that for map tasks. Nonetheless, the $R^2$ accuracy of per-job reduce execution time prediction is still up to 0.918. Thus the overall prediction accuracy of reduce task execution time is also quite good.
+Figure 1b shows the predicted vs. actual total per-job reduce execution times of jobs in our experiments. Apparently, the distribution of points in this figure is less intensive than that in Figure 1a, which means the prediction accuracy for reduce tasks is lower than that for map tasks. Nonetheless, the $R^2$ accuracy of per-job reduce execution time prediction is still up to 0.918. Thus the overall prediction accuracy of reduce task execution time is also quite good.
 
-Figure 4 compares the predicted and actual job sizes in our verification. The $R^2$ accuracy reaches a high value of 0.970, which exceeds the prediction accuracies of both map and reduce task execution time.  We notice that, generally, the predicted map-task execution times of small jobs are lower than the actual values, while the predicted reduce tasks execution times of small jobs are higher than the actual values. The higher accuracy of job size prediction might result from the offset of prediction deviation of the map and reduce tasks execution time.
+Figure 1c compares the predicted and actual job sizes in our verification. The $R^2$ accuracy reaches a high value of 0.970, which exceeds the prediction accuracies of both map and reduce task execution time.  We notice that, generally, the predicted map-task execution times of small jobs are lower than the actual values, while the predicted reduce tasks execution times of small jobs are higher than the actual values. The higher accuracy of job size prediction might result from the offset of prediction deviation of the map and reduce tasks execution time.
 
 \subsection{Validation of FSPY Performance}
 Responsiveness and fairness are the core aspects of scheduler performance we are concerned with in this paper. Therefore, these performance aspects of FSPY should be the evaluation focus in our experiments. According to the common practice in scheduling literature, we use job response time as the metric of responsiveness. In our experiments, the average value and empirical cumulative distribution function (ECDF) of job response times under FSPY are compared with that under the Fair scheduler.
@@ -771,48 +763,48 @@ where $S_i$ denotes job size of $J_i$. $I_i$ is the time interval between submis
 
 To get workload with different RCPs, we extract a series of continuous segments from FB-2009 and run the workload built from each segment separately. The FB-2009 is composed of 5894 independent jobs. Each segment contains 200 jobs and adjacent segments have an overlap of 50 jobs. In consequence, we get 37 segments from the FB-2009. Each segment is used to synthesize an executable workload. And then, each synthesized workload is run under the FSPY and Fair scheduler respectively. After the execution, the RCP of each workload, the job response times under the FSPY and Fair scheduler are calculated.
 
-The workloads in our experiments are classified by RCP into 7 groups. Figure 5 shows the number of trace segments (workloads) in each RCP group. The group with RCP of 5 has more workloads than all the others. As the RCP rises or falls from 5, the number of workloads in the group decreases. The number of workloads with RCP that is greater than or equal to 6 is up to 19, accounting for more than 50\% of the total.
+The workloads in our experiments are classified by RCP into 7 groups. Figure 2a shows the number of trace segments (workloads) in each RCP group. The group with RCP of 5 has more workloads than all the others. As the RCP rises or falls from 5, the number of workloads in the group decreases. The number of workloads with RCP that is greater than or equal to 6 is up to 19, accounting for more than 50\% of the total.
 
 \subsubsection{Responsiveness}
-The comparisons of job average response times under the FSPY and Fair scheduler are given in Figure 6. As shown in the figure, when RCP is less than or equal to 3, the average response time of jobs under the FSPY scheduler and that under Fair scheduler are almost equal. The reason lies in the fact that when the resources are abundant to the workload, every job can get resources timely and the scheduler will have few effects on the performance. When RCP is greater than or equal to 6, the average response time of jobs under the FSPY scheduler is dramatically less than that under the Fair scheduler. Furthermore, as the RCP rises from 6, the gap between FSPY and Fair scheduler widens sharply. Therefore, FSPY is more efficient than the Fair scheduler in terms of job response time, especially when the workload is under a high RCP.
+The comparisons of job average response times under the FSPY and Fair scheduler are given in Figure 2b. As shown in the figure, when RCP is less than or equal to 3, the average response time of jobs under the FSPY scheduler and that under Fair scheduler are almost equal. The reason lies in the fact that when the resources are abundant to the workload, every job can get resources timely and the scheduler will have few effects on the performance. When RCP is greater than or equal to 6, the average response time of jobs under the FSPY scheduler is dramatically less than that under the Fair scheduler. Furthermore, as the RCP rises from 6, the gap between FSPY and Fair scheduler widens sharply. Therefore, FSPY is more efficient than the Fair scheduler in terms of job response time, especially when the workload is under a high RCP.
 \begin{figure*}
   \centering
-  \subfigure[Trace segment numbers in each RCP group.]{
+  \subfigure[Trace segment numbers in each group.]{
     \label{workload-rcp} %% label for first subfigure
     \includegraphics[width=0.32\linewidth]{workload-rcp}}
-  \subfigure[The average response time of jobs in each RCP group.]{
+  \subfigure[The average job response time in each group.]{
     \label{group-art} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{group-art}}
-  \subfigure[ECDF of job response times under the RCP of 6.]{
+  \subfigure[Job response times under RCP of 6.]{
     \label{responsetime-ECDF} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{responsetime-ECDF}}
-  \caption{Two Subfigures}
+  \caption{Workload characteristics and experimental results about responsiveness.}
   \label{pre_actual_exe_time} %% label for entire figure
 \end{figure*}
 
 \begin{figure*}
   \centering
-  \subfigure[ECDF of job common slowdown under the RCP of 6.]{
+  \subfigure[Job common slowdown.]{
     \label{common_slowdown} %% label for first subfigure
     \includegraphics[width=0.32\linewidth]{common_slowdown}}
-  \subfigure[ECDF of job fair slowdown under the RCP of 6.]{
+  \subfigure[Job fair slowdown.]{
     \label{fair_slowdown} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{fair_slowdown}}
-  \subfigure[Job response times under FSPY vs. that under the Fair scheduler (RCP = 6).]{
+  \subfigure[Job response times.]{
     \label{fair_fspy_response_time} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{fair_fspy_response_time}}
-  \caption{Two Subfigures}
+  \caption{Experimental results about fairness in RCP of 6.}
   \label{pre_actual_exe_time} %% label for entire figure
 \end{figure*}
 
-Figure 7 shows the ECDF of per-job response times in the group with RCP of 6. The two curves in this figure almost coincide when job response times are less than 15s because that the tiny jobs are generally given the highest priority under both FSPY and the Fair scheduler. In the middle area of the figure, there is a significant gap between the curves of FSPY and Fair scheduler. The ECDF under FSPY exceeds 0.8 at the response time of 40s, which means more than 80\% of jobs under FSPY have a response time below 40s, while the percentage under the Fair scheduler is less than 50\%. It indicates middle-size jobs generally have a shorter response time under FSPY than under the Fair scheduler. Moreover, when job response time exceeds 64s, the two curves coincided again, which means that large jobs have similar response times under these two schedulers.
+Figure 2c shows the ECDF of per-job response times in the group with RCP of 6. The two curves in this figure almost coincide when job response times are less than 15s because that the tiny jobs are generally given the highest priority under both FSPY and the Fair scheduler. In the middle area of the figure, there is a significant gap between the curves of FSPY and Fair scheduler. The ECDF under FSPY exceeds 0.8 at the response time of 40s, which means more than 80\% of jobs under FSPY have a response time below 40s, while the percentage under the Fair scheduler is less than 50\%. It indicates middle-size jobs generally have a shorter response time under FSPY than under the Fair scheduler. Moreover, when job response time exceeds 64s, the two curves coincided again, which means that large jobs have similar response times under these two schedulers.
 
 \subsubsection{Fairness}
-We use the common slowdown and fair slowdown as metrics to evaluate the fairness of FSPY. Figure 8 shows the ECDF of job common slowdown in the group with RCP of 10. On the whole, the job common slowdown under FSPY is less than that under the Fair scheduler. The percentage of jobs under FSPY with a common slowdown less than 4 exceeds 95\% while it is less than 65\% under the Fair scheduler. Moreover, the maximum of job common slowdown under FSPY (about 5) is significantly less than that under the Fair scheduler (about 10).
+We use the common slowdown and fair slowdown as metrics to evaluate the fairness of FSPY. Figure 3a shows the ECDF of job common slowdown in the group with RCP of 10. On the whole, the job common slowdown under FSPY is less than that under the Fair scheduler. The percentage of jobs under FSPY with a common slowdown less than 4 exceeds 95\% while it is less than 65\% under the Fair scheduler. Moreover, the maximum of job common slowdown under FSPY (about 5) is significantly less than that under the Fair scheduler (about 10).
 
-Figure 9 shows the ECDF of fair slowdown in the group with RCP of 6. As shown in this figure, jobs with a fair slowdown less than or equal to 1 account for more than 75\% of the total. This indicates that more than 75\% of jobs under FSPY have a response time no longer than that they would have under the Fair scheduler. Besides, more than 98\% of jobs under FSPY have a response time less than 1.5. And the maximum of fair slowdown under FSPY in the experiment approximates 1.7. There are still some jobs whose fair slowdown exceeds 1 under FSPY, which can be attributed to a couple of factors. One is the job size prediction error, which can be reduced but never eliminated. Another is that the job size itself can be fluctuant to certain extent from one run to another.
+Figure 3b shows the ECDF of fair slowdown in the group with RCP of 6. As shown in this figure, jobs with a fair slowdown less than or equal to 1 account for more than 75\% of the total. This indicates that more than 75\% of jobs under FSPY have a response time no longer than that they would have under the Fair scheduler. Besides, more than 98\% of jobs under FSPY have a response time less than 1.5. And the maximum of fair slowdown under FSPY in the experiment approximates 1.7. There are still some jobs whose fair slowdown exceeds 1 under FSPY, which can be attributed to a couple of factors. One is the job size prediction error, which can be reduced but never eliminated. Another is that the job size itself can be fluctuant to certain extent from one run to another.
 
-Figure 10 shows the comparisons of job response times under FSPY and the Fair scheduler. In the figure, most points are below the quadrant diagonal, indicating that most jobs have a shorter response time under FSPY than under the Fair scheduler.  The points above the diagonal are distributed mainly at the bottom-left corner, which reconfirmed the poor precision in the size prediction of small jobs. Although, for small jobs, delay caused by the poor job size prediction precision is relatively short (generally a few seconds), thus can be tolerated in the scheduling. In summary, FSPY, on the whole, can guarantee the fairness of resource scheduling in YARN.
+Figure 3c shows the comparisons of job response times under FSPY and the Fair scheduler. In the figure, most points are below the quadrant diagonal, indicating that most jobs have a shorter response time under FSPY than under the Fair scheduler.  The points above the diagonal are distributed mainly at the bottom-left corner, which reconfirmed the poor precision in the size prediction of small jobs. Although, for small jobs, delay caused by the poor job size prediction precision is relatively short (generally a few seconds), thus can be tolerated in the scheduling. In summary, FSPY, on the whole, can guarantee the fairness of resource scheduling in YARN.
 \section{Conclusion}
 In this paper, we present the FSPY scheduler to improve the responsiveness of the Hadoop YARN platform. Our scheduler is designed based on the idea of size-based scheduling. We propose a job size prediction mechanism to predict the whole job sizes of MapReduce jobs. Moreover, to guarantee the fairness of scheduling, a couple of novel algorithms are proposed to calculate job virtual sizes. Experimental results show that FSPY has a better responsiveness than Fair scheduler, especially when the system is under a heavy workload. Meanwhile, our scheduler guarantees the fairness between jobs. Furthermore, our job size prediction method also achieves a satisfying precision. In our future work, we will provide job size prediction models for other programming frameworks such as Tez and Spark.
 
