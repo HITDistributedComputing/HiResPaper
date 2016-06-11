@@ -596,10 +596,10 @@ To save resource and time consumed in the probing process, a probing job is set 
 We present a semi-random sampling algorithm for the probing job, as shown in Algorithm 1. The input parameters of this algorithm include splits (input data splits of the original job), mapperCount (map tasks count of the original job), reducerCount (reduce tasks count of the original job), and sampledSplitsUpperBound (maximum number of splits that can be sampled in this routine). The output is the dataset sampled from the splits. Firstly, we set the sampling fraction to be the reciprocal of the larger number between the counts of map and reduce tasks in the original job. This setting can prevent either the map or reduce task in a probing job from crashing under a too heavy workload. Then, the number of splits to be sampled and the sampling frequency of records in each split are calculated. To reduce consumed time, we do the sampling on a number of splits (not more than sampledSplitsUpperBound) selected randomly from the original splits. Finally, data is sampled from the selected splits according to the sampling frequency.
 
 \begin{algorithm}
-  \caption{Data Sampling}
+  \caption{DATA SAMPLING}
   \KwIn{splits, mapperCount,  reducerCount, sampledSplitsUpperBound}
   \KwOut{sampledData}
-  sampleFrac = 1/ max(mapperCount, reducerCount)\;
+  sampleFrac = 1 / max(mapperCount, reducerCount)\;
   sampleSplitNum = min(mapperCount, sampledSplitsUpperBound)\;
   splitSampleFreq = sampleFrac / (sampleSplitNum / mapperCount)\;
   sampledData = an empty collection\;
@@ -636,17 +636,17 @@ Algorithm 2 describes the procedure of VRA. The input parameters of this procedu
   \KwIn{virtualQueue, clusterResource}
   \KwOut{virtualQueue}
   remainingResource = clusterResource\;
-  \For{$j=0$;$j \le$ virtualQueue.length;$j$ ++}
+  \For{$j=0$;$j\le$ virtualQueue.length;$j$ ++}
   {
     $job = virtualQueue[i]$\;
-    $fairShare = remainingResource/(virtualQueue.length-i)$\;
+    $fairShare = remainingResource / (virtualQueue.length-i)$\;
     \eIf{$fairShare > job.APB$}{
         $job.virtualResource = job.APB$\;
     }{
-        $feedPercentage = fariShare / job.APB$\;
+        $feedPercentage = fairShare / job.APB$\;
         $job.virtualResource = job.APB \times feedPercentage$\;
     }
-    $remainingResource 每= job.virtualResource$\;
+    $remainingResource-=job.virtualResource$\;
   }
   return $virtualQueue$\;
 \end{algorithm}
@@ -657,20 +657,20 @@ The VSC algorithm depends on the last running result of the VRA algorithm. Algor
   \caption{VIRTUAL SIZE CALCULATION}
   \KwIn{virtualQueue, lastUpdateTime}
   \KwOut{virtualQueue}
-  interval = lastUpdateTime 每 currentTime\;
+  interval = lastUpdateTime $-$ currentTime\;
   \For{$job$ \textbf{in} $virtualQueue$}
   {
-    \eIf{$job.virtualResource > 0$}{
+    \If{$job.virtualResource > 0$}{
         \eIf{$job$ is in uber mode}{
-            $job.virtualSize 每= job.virtualResource \times interval$
+            $job.virtualSize -= job.virtualResource \times interval$
         }{
-            $effectiveResource = job.virtualResource 每 job.amResource$
-            $job.virtualSize 每= effectiveResource \times interval$
+            $effectiveResource = job.virtualResource - job.amResource$
+            $job.virtualSize -= effectiveResource \times interval$
         }
-        \eIf{$job.virtualSize <= 0$}{
+        \If{$job.virtualSize <= 0$}{
             remove $job$ from $virtualQueue$
-        }{continue}
-    }{continue}
+        }
+    }
   }
   return $virtualQueue$\;
 \end{algorithm}
