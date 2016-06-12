@@ -84,22 +84,24 @@
 % pdflatex eps support
 %\usepackage{epstopdf}
 % single col picture and table support in two column env
-\makeatletter
-\newenvironment{tablehere}
-  {\def\@captype{table}}
-  {}
-
-\newenvironment{figurehere}
-  {\def\@captype{figure}}
-  {}
-\makeatother
+%\makeatletter
+%\newenvironment{tablehere}
+%  {\def\@captype{table}}
+%  {}
+%
+%\newenvironment{figurehere}
+%  {\def\@captype{figure}}
+%  {}
+%\makeatother
 % add small equation support
 \newenvironment{sequation}{\begin{equation}\small}{\end{equation}}
 % add normal size equation support
 % \newenvironment{nequation}{\begin{equation}\normalsize}{\end{equation}}
 % enable spacing
-\usepackage{setspace}
+%\usepackage{setspace}
 \usepackage{subfigure}
+% open thanks support
+\IEEEoverridecommandlockouts
 
 % Add the compsocconf option for Computer Society conferences.
 %
@@ -397,6 +399,8 @@
 % affiliations
 
 \author{\IEEEauthorblockN{Yang Liu\IEEEauthorrefmark{1}, Yukun Zeng\IEEEauthorrefmark{1}, Xuefeng Piao\IEEEauthorrefmark{2}}
+%\corref{cor1}
+%\cortext[cor1]{Corresponding author}
 \IEEEauthorblockA{School of Computer Science and Technology\\
 Harbin Institute of Technology\\
 Weihai, China\\
@@ -466,7 +470,7 @@ YARN; scheduling; responsiveness; fairness; job size prediction
 % For peerreview papers, this IEEEtran command inserts a page break and
 % creates the second title. It will be ignored for other modes.
 \IEEEpeerreviewmaketitle
-\footnote{\IEEEauthorrefmark{2}Xuefeng Piao is corresponding author}
+\footnote{\IEEEauthorrefmark{2}Xuefeng Piao is the corresponding author}
 
 
 \section{Introduction}
@@ -922,12 +926,10 @@ In this paper, we present the FSPY scheduler to improve the responsiveness of th
 % http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
 % The IEEEtran BibTeX style support page is at:
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
-%\begin{spacing}{0.5}
 
 \bibliographystyle{IEEEtran}
 % argument is your BibTeX string definitions and bibliography database(s)
 \bibliography{refs}
-%\end{spacing}
 %
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
