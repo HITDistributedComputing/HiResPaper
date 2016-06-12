@@ -447,7 +447,7 @@ Email: \IEEEauthorrefmark{1}\{yang.liu.hitwh, yukun.zeng.hit\}@gmail.com\\
 
 
 \begin{abstract}
-Hadoop is an open-source big data analysis platform that is widely used in both academia and industry. Decoupling of resource management and programming framework, the next generation of Hadoop, namely Hadoop YARN, is accommodated to various programming frameworks and capable of handling more kinds of workload, such as interactive analysis and stream processing. However, most existent schedulers in YARN are designed for batch processing and they do not value per-job response time, which results in low responsiveness of the Hadoop platform. This paper proposes a FSPY (Fair Sojourn Protocol in YARN) scheduler to improve responsiveness with guaranteeing fairness. FSPY relies on job sizes which are unknown a priori. Consequently, we also present a job size prediction mechanism for MapReduce. Experimental results show that our scheduler outperforms Fair scheduler by 10x with respect to responsiveness under heavy workloads. Meanwhile, our prediction mechanism reaches an $R^2$ prediction accuracy of 0.97.
+Hadoop is an open-source big data analysis platform that is widely used in both academia and industry. Decoupling of resource management and programming framework, the next generation of Hadoop, namely Hadoop YARN, is accommodated to various programming frameworks and capable of handling more kinds of workload, such as interactive analysis and stream processing. However, most existent schedulers in YARN are designed for batch processing and they do not value per-job response time, which results in low responsiveness of the Hadoop platform. This paper proposes a FSPY (Fair Sojourn Protocol in YARN) scheduler to improve responsiveness with guaranteeing fairness. FSPY relies on job sizes which are unknown a priori. Consequently, we also present a job size prediction mechanism for MapReduce. Experimental results show that our scheduler outperforms Fair scheduler by 10x with respect to responsiveness under heavy workloads. Meanwhile, our prediction mechanism reaches an R2 prediction accuracy of 0.97.
 
 \end{abstract}
 
@@ -600,7 +600,7 @@ We present a semi-random sampling algorithm for the probing job, as shown in Alg
   \caption{DATA SAMPLING}
   \KwIn{splits, mapperCount,  reducerCount, sampledSplitsUpperBound}
   \KwOut{sampledData}
-  sampleFrac = 1 / max(mapperCount, reducerCount)\;
+  \emph{sampleFrac = 1 / max(mapperCount, reducerCount)\;
   sampleSplitNum = min(mapperCount, sampledSplitsUpperBound)\;
   splitSampleFreq = sampleFrac / (sampleSplitNum / mapperCount)\;
   sampledData = an empty collection\;
@@ -616,7 +616,7 @@ We present a semi-random sampling algorithm for the probing job, as shown in Alg
     $sampleBytes = splits[i].length \times splitSampleFreq$\;
     Read $sampleBytes$ of data from $splits[i]$ and append to $sampledData$
   }
-  return $sampledData$\;
+  return $sampledData$\;}
 \end{algorithm}
 
 Moreover, we develop a new version of MapReduce framework, named probing MapReduce, specially for the probing job. In the probing MapReduce framework, the procedure of map task is adjusted and some new counters are added. The map task execution procedure contains the data sampling routine. After the sampling routine is finished, the map function starts to process the data sampled. Native counters in the MapReduce framework cannot collect enough features, we add some new counters to the framework. The new added counters include the counter of map function execution time and the counter of reduce function execution time.
@@ -636,7 +636,7 @@ Algorithm 2 describes the procedure of VRA. The input parameters of this procedu
   \caption{VIRTUAL RESOURCE ALLOCATION}
   \KwIn{virtualQueue, clusterResource}
   \KwOut{virtualQueue}
-  remainingResource = clusterResource\;
+  \emph{remainingResource = clusterResource\;
   \For{$j=0$;$j\le$ virtualQueue.length;$j$ ++}
   {
     $job = virtualQueue[i]$\;
@@ -649,7 +649,7 @@ Algorithm 2 describes the procedure of VRA. The input parameters of this procedu
     }
     $remainingResource-=job.virtualResource$\;
   }
-  return $virtualQueue$\;
+  return $virtualQueue$\;}
 \end{algorithm}
 
 The VSC algorithm depends on the last running result of the VRA algorithm. Algorithm 3 describes the procedure of VSC. The input parameters of VSC include virtual queue and lastUpdateTime, i.e., the last time when VSC was executed. During the interval of two adjacent update, the virtual size variance of a job is the product of its allocated virtual resources and the interval. Thus, current virtual size of the job is the result of its last virtual size subtracting the variance. One thing to note here is that, for jobs not in uber mode, the resources of their AM containers are eliminated from the resources used to calculate the virtual size. As the AM process is in charge of job management rather than doing specific processing works, its execution time is almost equal to the execution time of its host job and can be affected significantly by its competition circumstances and the scheduling policy. Thus, the size of an AM process should not be counted to the job size. After the execution of VSC, virtual sizes of each job in the virtual queue are updated.
@@ -658,7 +658,7 @@ The VSC algorithm depends on the last running result of the VRA algorithm. Algor
   \caption{VIRTUAL SIZE CALCULATION}
   \KwIn{virtualQueue, lastUpdateTime}
   \KwOut{virtualQueue}
-  interval = lastUpdateTime $-$ currentTime\;
+  \emph{interval = lastUpdateTime $-$ currentTime\;
   \For{$job$ \textbf{in} $virtualQueue$}
   {
     \If{$job.virtualResource > 0$}{
@@ -673,7 +673,7 @@ The VSC algorithm depends on the last running result of the VRA algorithm. Algor
         }
     }
   }
-  return $virtualQueue$\;
+  return $virtualQueue$\;}
 \end{algorithm}
 
 \subsection{FSPY Scheduling Framework}
@@ -734,16 +734,16 @@ We use SWIM \cite{chen2011case} to synthesize the workload used in our experimen
 Figure \ref{map_execution_time_prediction} compares the predicted and actual per-job map execution times in our experiments. As the figure shows, most jobs are distributed intensively around the diagonal. We also notice that a portion of jobs are located under the diagonal in the lower left corner of the plot, which means that for tiny jobs (per-job map execution time less than 30s),  our predicted values are generally smaller than the actual values. Statistically, the $R^2$ accuracy of our prediction reaches 0.942. The whole results suggest that our method is effective in per-job map execution time prediction, especially for large jobs.
 \begin{figure*}
   \centering
-  \subfigure[map tasks execution time]{
+  \subfigure[Map tasks execution time]{
     \label{map_execution_time_prediction} %% label for first subfigure
     \includegraphics[width=0.32\linewidth]{map_execution_time_prediction}}
-  \subfigure[reduce tasks execution time]{
+  \subfigure[Reduce tasks execution time]{
     \label{reduce_execution_time_prediction} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{reduce_execution_time_prediction}}
-  \subfigure[job sizes]{
+  \subfigure[Job sizes]{
     \label{jobsize_prediction} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{jobsize_prediction}}
-  \caption{Predicted vs. actual values in the job size prediction.}
+  \caption{Predicted vs. Actual values in prediction experiments.}
   \label{pre_actual_exe_time} %% label for entire figure
 \end{figure*}
 
@@ -776,7 +776,7 @@ The workloads in our experiments are classified by RCP into 7 groups. Figure \re
   \subfigure[Job response times under RCP of 6.]{
     \label{responsetime-ECDF} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{responsetime-ECDF}}
-  \caption{Workload characteristics and experimental results about responsiveness.}
+  \caption{Workload characteristics and experimental results for responsiveness evaluation.}
   \label{pre_actual_exe_time} %% label for entire figure
 \end{figure*}
 
@@ -798,7 +798,7 @@ We use the common slowdown and fair slowdown as metrics to evaluate the fairness
   \subfigure[Job response times.]{
     \label{fair_fspy_response_time} %% label for second subfigure
     \includegraphics[width=0.32\linewidth]{fair_fspy_response_time}}
-  \caption{Experimental results about fairness in RCP of 6.}
+  \caption{Experimental results for fairness evaluation in RCP of 6.}
   \label{pre_actual_exe_time} %% label for entire figure
 \end{figure*}
 
